@@ -1,0 +1,43 @@
+"""icd10gm-crosswalk — map ICD-10-GM codes across annual editions.
+
+A small, dependency-free Python library that turns BfArM's official *Umsteiger*
+(transition) tables into a multi-year crosswalk, preserving the automatic-vs-manual
+transition flag and honestly reporting the ambiguity that chained splits and merges
+introduce.
+
+Quick start
+-----------
+>>> from icd10gm_crosswalk import Crosswalk
+>>> cw = Crosswalk.from_source("~/icd10gm-zips")  # doctest: +SKIP
+>>> result = cw.map("J45.0", 2017, 2024)            # doctest: +SKIP
+>>> result.kind, result.targets                     # doctest: +SKIP
+(<MappingKind.SPLIT: 'split'>, ('J45.00', 'J45.01', ...))
+
+The library never bundles or redistributes BfArM data; see
+:mod:`icd10gm_crosswalk.download` for the terms-gated download helper.
+"""
+
+from __future__ import annotations
+
+from .crosswalk import Crosswalk
+from .download import BfArMDownloadError, download_year
+from .models import MappingKind, MapResult, StepResult, Transition
+from .parsing import find_umsteiger, parse_umsteiger_text
+from .store import TransitionStore, YearStep
+
+__version__ = "0.1.0"
+
+__all__ = [
+    "BfArMDownloadError",
+    "Crosswalk",
+    "MapResult",
+    "MappingKind",
+    "StepResult",
+    "Transition",
+    "TransitionStore",
+    "YearStep",
+    "__version__",
+    "download_year",
+    "find_umsteiger",
+    "parse_umsteiger_text",
+]

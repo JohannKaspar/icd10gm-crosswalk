@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
+build/
+dist/
+.eggs/
+
+# Tooling caches
+.pytest_cache/
+.ruff_cache/
+.ty_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# BfArM data must never be committed (copyrighted; do not redistribute).
+# The .txt fixtures under tests/data/ are hand-authored synthetic data, not BfArM
+# files, so they are intentionally NOT ignored.
+/data/
+*.zip
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
