@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import pytest
+
 from icd10gm_crosswalk import Crosswalk, MappingKind, TransitionStore, YearStep
 from icd10gm_crosswalk.models import Transition
 
@@ -162,3 +164,44 @@ def test_chain_split_with_co_merge_is_merge() -> None:
     assert res.kind is MappingKind.SPLIT
     assert res.is_merge is True
     assert res.merged_from == ("B",)
+
+
+# -- Kreuz-Stern markers and compound diagnoses ---------------------------- #
+def test_map_preserves_marker_on_identity(crosswalk: Crosswalk) -> None:
+    res = crosswalk.map("Z00.0†", 2000, 2003)
+    assert res.kind is MappingKind.IDENTITY  # classified on the bare code
+    assert res.code == "Z00.0†"
+    assert res.targets == ("Z00.0†",)  # marker re-applied
+
+
+def test_map_preserves_marker_on_remap(crosswalk: Crosswalk) -> None:
+    res = crosswalk.map("Z01.0!", 2000, 2001)
+    assert res.kind is MappingKind.ONE_TO_ONE
+    assert res.targets == ("Z01.1!",)
+
+
+def test_map_preserves_marker_across_split(crosswalk: Crosswalk) -> None:
+    res = crosswalk.map("Z02.0*", 2000, 2001)
+    assert res.kind is MappingKind.SPLIT
+    assert res.targets == ("Z02.00*", "Z02.01*")
+    # the per-step trace stays bare
+    assert all("*" not in t for sr in res.steps for t in sr.targets)
+
+
+def test_map_rejects_compound(crosswalk: Crosswalk) -> None:
+    with pytest.raises(ValueError, match="map_components"):
+        crosswalk.map("Z01.0,Z02.0", 2000, 2001)
+    with pytest.raises(ValueError, match="map_components"):
+        crosswalk.map("Z01.0 Z02.0", 2000, 2001)
+
+
+def test_map_components_splits_and_preserves_markers(crosswalk: Crosswalk) -> None:
+    results = crosswalk.map_components("Z01.0,Z02.0*", 2000, 2001)
+    assert [r.code for r in results] == ["Z01.0", "Z02.0*"]
+    assert results[0].targets == ("Z01.1",)
+    assert results[1].kind is MappingKind.SPLIT
+    assert results[1].targets == ("Z02.00*", "Z02.01*")
+
+
+def test_map_components_empty(crosswalk: Crosswalk) -> None:
+    assert crosswalk.map_components("", 2000, 2001) == []

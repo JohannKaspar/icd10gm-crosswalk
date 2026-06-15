@@ -20,6 +20,7 @@ download yourself.
 
 from __future__ import annotations
 
+from .codes import split_components, split_marker, strip_markers
 from .crosswalk import Crosswalk
 from .models import MappingKind, MapResult, StepResult, Transition
 from .parsing import find_umsteiger, parse_umsteiger_text
@@ -40,6 +41,9 @@ __all__ = [
     "download_instructions",
     "find_umsteiger",
     "parse_umsteiger_text",
+    "split_components",
+    "split_marker",
+    "strip_markers",
     "transition_zip_url",
     "transition_zip_urls",
 ]

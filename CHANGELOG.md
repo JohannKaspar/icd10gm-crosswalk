@@ -18,6 +18,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   `needs_manual_review` signal, plus an `ambiguous` flag for unresolved chains.
 - `Crosswalk.recommend` — pick a single representative code (parent fallback) for
   a 1:n split.
+- Combined-code & Kreuz-Stern support: `map` strips a trailing Kreuz (`†`/`+`),
+  Stern (`*`), or `!` marker for the lookup and re-applies it to the result;
+  `map_components` maps each component of a compound diagnosis; `map` raises on a
+  compound. Helpers `strip_markers` / `split_marker` / `split_components`.
 - `TransitionStore` / `parse_umsteiger_text` / `find_umsteiger` — read transition
   tables from a loose `.txt`, a year ZIP, or a directory (incl. BfArM's nested-ZIP
   layout from the 2022 edition onward), with recursion-depth and member-size guards

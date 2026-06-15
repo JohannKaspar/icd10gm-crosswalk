@@ -28,8 +28,10 @@ crosswalks exactly.
 from __future__ import annotations
 
 import os
+from dataclasses import replace
 from pathlib import Path
 
+from .codes import COMPONENT_SEPARATOR, split_components, split_marker
 from .models import MappingKind, MapResult, StepResult
 from .store import TransitionStore, YearStep
 
@@ -55,6 +57,9 @@ class Crosswalk:
         (identity) — this mirrors BfArM's tables, which only list codes that
         change, and keeps long chains stable. Raises :class:`KeyError` if no step
         starts at ``from_year``.
+
+        Expects a **bare** code; Kreuz/Stern/``!`` markers and compound strings are
+        handled by :meth:`map` / :meth:`map_components`, not here.
         """
         step = self.store.step(from_year)
         rows = step.forward.get(code)
@@ -108,10 +113,53 @@ class Crosswalk:
     def map(self, code: str, from_year: int, to_year: int) -> MapResult:
         """Map ``code`` from ``from_year`` to ``to_year`` through every yearly step.
 
-        Raises :class:`ValueError` if the store is missing any step in the range
-        (see :meth:`TransitionStore.require_chain`). ``from_year == to_year`` is a
-        valid no-op that returns an identity result.
+        A trailing Kreuz/Stern/``!`` marker (e.g. ``E10.30†``, ``R65.1!``) is
+        handled transparently: it is stripped for the lookup and re-applied to the
+        result's :attr:`~icd10gm_crosswalk.models.MapResult.code` and ``targets``,
+        so the etiology/manifestation role rides along. The marker is re-applied
+        *syntactically* — it is not re-validated against the target edition's
+        systematik, which this library does not read; the per-step ``steps`` trace
+        stays in bare codes.
+
+        A *compound* string (multiple codes joined by a separator, e.g.
+        ``A41.9,R65.1!``) is not a single code — :meth:`map` raises
+        :class:`ValueError`; use :meth:`map_components` instead. Also raises
+        :class:`ValueError` if the store is missing any step in the range. With
+        ``from_year == to_year`` it is a valid no-op returning an identity result.
         """
+        stripped = code.strip()
+        if COMPONENT_SEPARATOR in stripped or any(ch.isspace() for ch in stripped):
+            raise ValueError(
+                f"{code!r} looks like a compound diagnosis (multiple codes); "
+                "use map_components() instead of map()."
+            )
+        bare, marker = split_marker(stripped)
+        result = self._map_bare(bare, from_year, to_year)
+        if not marker:
+            return result
+        return replace(
+            result,
+            code=bare + marker,
+            targets=tuple(target + marker for target in result.targets),
+        )
+
+    def map_components(
+        self, text: str, from_year: int, to_year: int, sep: str = COMPONENT_SEPARATOR
+    ) -> list[MapResult]:
+        """Map each component of a compound diagnosis, preserving its marker.
+
+        Splits ``text`` on ``sep`` (default ``","``) and maps every component via
+        :meth:`map`, so ``A41.9,R65.1!`` yields one result for ``A41.9`` and one
+        for ``R65.1!`` (the ``!`` carried onto its targets). Returns an empty list
+        for empty input.
+        """
+        return [
+            self.map(component, from_year, to_year)
+            for component in split_components(text, sep)
+        ]
+
+    def _map_bare(self, code: str, from_year: int, to_year: int) -> MapResult:
+        """Chain a single **bare** code (no marker, no compound) across the range."""
         chain: list[YearStep] = self.store.require_chain(from_year, to_year)
 
         frontier: set[str] = {code}

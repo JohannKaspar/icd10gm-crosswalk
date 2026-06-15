@@ -40,6 +40,9 @@ does the chaining.
   (parent fallback) when you must collapse a 1:n mapping.
 - **Reads BfArM's real layout** — loose `.txt`, a year ZIP, or a whole directory,
   including the nested-ZIP packaging used since the 2022 edition.
+- **Combined codes & Kreuz-Stern notation** — maps the components of a compound
+  diagnosis and carries the Kreuz (`†`/`+`), Stern (`*`), and `!` role markers
+  through the mapping.
 - **Zero runtime dependencies**, fully typed (`py.typed`), tested, with a CLI.
 
 ## Installation
@@ -93,6 +96,31 @@ res = cw.map("J45.0", 2017, 2024)
 for step in res.steps:
     print(step.from_year, "→", step.to_year, step.code, step.targets, step.kind.value)
 ```
+
+### Combined codes & Kreuz-Stern notation
+
+ICD-10-GM marks the roles in a combined diagnosis with a Kreuz/dagger (`†` or `+`,
+the underlying disease), a Stern (`*`, the manifestation), and an `!`
+(Ausrufezeichen, a secondary code), and sources often join the components into one
+string. BfArM's transition tables key on *bare* codes, so `map()` strips a trailing
+marker for the lookup and re-applies it to the result — and `map_components()`
+handles a whole compound:
+
+```python
+cw.map("E10.30†", 2017, 2024).targets        # ('E10.30†',)  -> marker preserved
+cw.map("B18.1†", 2017, 2024).targets         # ('B18.11†', 'B18.12†', 'B18.14†', 'B18.19†')
+
+# A compound diagnosis: one result per component, each keeping its role marker.
+for r in cw.map_components("A41.9,R65.1!", 2017, 2024):
+    print(r.code, "→", r.targets)            # A41.9 → (...);  R65.1! → ('R65.1!',)
+
+cw.map("A41.9,R65.1!", 2017, 2024)           # ValueError: use map_components()
+```
+
+The marker is re-applied *syntactically* (it preserves the source annotation's
+role); it is not re-validated against the target edition's systematik, which the
+library doesn't read. Helpers `strip_markers`, `split_marker`, and
+`split_components` are exported if you need them directly.
 
 ## Command line
 
