@@ -103,8 +103,8 @@ icd10gm-crosswalk info --data ~/icd10gm-zips
 # Map a single code, with the per-year trace
 icd10gm-crosswalk map J45.0 --from 2017 --to 2024 --trace --data ~/icd10gm-zips
 
-# Best-effort download (see licensing note before using)
-icd10gm-crosswalk download 2018 2019 2020 2021 2022 2023 2024 --accept-terms
+# Which BfArM files do I need to download for a given range?
+icd10gm-crosswalk urls --from 2017 --to 2024
 ```
 
 ## Data & licensing
@@ -117,19 +117,25 @@ distribute derived "value-added products"** (such as the crosswalk this library
 produces). Bundling the tables would violate the first clause — so instead the
 library reads data *you* obtain.
 
-**Recommended: download once via your browser** (one click, accept the terms) and
-point the library at the files. You need the *Überleitung* (transition) package
-for each edition, e.g. `icd10gm2024syst-ueberl_zip.html` from the
+**Download once via your browser** (one click, accept the terms) and point the
+library at the files. You need the *Überleitung* (transition) package for each
+edition, e.g. `icd10gm2024syst-ueberl_zip.html` from the
 [BfArM download page](https://www.bfarm.de/DE/Kodiersysteme/Services/Downloads/_node.html).
 Drop the year ZIPs in a folder and pass that folder to `from_source`.
 
-**Optional: the terms-gated downloader.** `download_year(year, accept_terms=True)`
-will *try* to fetch a transition ZIP into a local cache. By passing `accept_terms=True`
-you acknowledge BfArM's terms — the download forms an agreement between *you* and
-BfArM, and this library is only the transport. BfArM's portal sits behind a consent
-gate and bot-protection that frequently rejects scripted requests; when that
-happens the call raises `BfArMDownloadError` with the exact URL to open and the
-folder to save into. It never silently fails or fabricates data.
+To save you hunting BfArM's site, the library tells you exactly which files a given
+range needs — and only that. It does **not** fetch them: BfArM's portal sits behind
+an anti-bot gate that rejects scripted requests, so an automated downloader would
+be unreliable, and the files may not be redistributed anyway.
+
+```bash
+icd10gm-crosswalk urls --from 2017 --to 2024
+```
+```python
+from icd10gm_crosswalk import download_instructions, transition_zip_urls
+print(download_instructions(2017, 2024))      # copy-pasteable recipe + terms link
+transition_zip_urls(2017, 2024)               # [(2018, url), ..., (2024, url)]
+```
 
 When you publish a crosswalk produced with this tool, attribute the source
 ("ICD-10-GM, © BfArM") as the terms require.

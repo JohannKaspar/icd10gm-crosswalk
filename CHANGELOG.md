@@ -22,9 +22,11 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   tables from a loose `.txt`, a year ZIP, or a directory (incl. BfArM's nested-ZIP
   layout from the 2022 edition onward), with recursion-depth and member-size guards
   against malformed or hostile archives.
-- `download_year` — terms-gated, best-effort downloader that caches to the user's
-  machine and fails loudly with manual instructions when BfArM's portal blocks it.
-- `icd10gm-crosswalk` CLI (`info`, `map`, `download`).
+- `download_instructions` / `transition_zip_urls` / `transition_zip_url` — tell you
+  exactly which BfArM transition ZIPs a year range needs (the library never fetches
+  or bundles data; BfArM's portal blocks scripted access and the files may not be
+  redistributed).
+- `icd10gm-crosswalk` CLI (`info`, `map`, `urls`).
 - Golden regression test reproducing the BRONCO150 2017→2024 crosswalk exactly.
 
 [Unreleased]: https://github.com/JohannKaspar/icd10gm-crosswalk/compare/v0.1.0...HEAD

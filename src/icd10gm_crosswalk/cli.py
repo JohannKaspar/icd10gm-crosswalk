@@ -1,4 +1,4 @@
-"""Command-line interface: ``icd10gm-crosswalk {info,map,download}``.
+"""Command-line interface: ``icd10gm-crosswalk {info,map,urls}``.
 
 Stdlib ``argparse`` only — the library has no runtime dependencies.
 """
@@ -11,7 +11,7 @@ from collections.abc import Sequence
 
 from . import __version__
 from .crosswalk import Crosswalk
-from .download import BfArMDownloadError, default_cache_dir, download_year
+from .sources import download_instructions
 from .store import TransitionStore
 
 
@@ -45,17 +45,11 @@ def _build_parser() -> argparse.ArgumentParser:
     p_map.add_argument("--trace", action="store_true", help="print the per-year path")
     _add_data_arg(p_map)
 
-    p_dl = sub.add_parser("download", help="download transition ZIPs from BfArM")
-    p_dl.add_argument(
-        "years", nargs="+", type=int, help="edition year(s), e.g. 2023 2024"
+    p_urls = sub.add_parser(
+        "urls", help="print the BfArM download links needed for an edition range"
     )
-    p_dl.add_argument(
-        "--accept-terms",
-        action="store_true",
-        help="acknowledge the BfArM download terms (required)",
-    )
-    p_dl.add_argument("--cache", metavar="DIR", help="cache directory")
-    p_dl.add_argument("--force", action="store_true", help="re-download if cached")
+    p_urls.add_argument("--from", dest="from_year", type=int, required=True)
+    p_urls.add_argument("--to", dest="to_year", type=int, required=True)
     return parser
 
 
@@ -94,27 +88,9 @@ def _cmd_map(args: argparse.Namespace) -> int:
     return 0
 
 
-def _cmd_download(args: argparse.Namespace) -> int:
-    if not args.accept_terms:
-        print(
-            "Refusing to download without --accept-terms. The BfArM files are free "
-            "but copyrighted; downloading forms a usage agreement. See the terms, "
-            "then re-run with --accept-terms.",
-            file=sys.stderr,
-        )
-        return 2
-    cache = args.cache or str(default_cache_dir())
-    failures = 0
-    for year in args.years:
-        try:
-            path = download_year(
-                year, accept_terms=True, cache_dir=cache, force=args.force
-            )
-            print(f"{year}: {path}")
-        except BfArMDownloadError as exc:
-            print(f"{year}: {exc}", file=sys.stderr)
-            failures += 1
-    return 1 if failures else 0
+def _cmd_urls(args: argparse.Namespace) -> int:
+    print(download_instructions(args.from_year, args.to_year))
+    return 0
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -125,8 +101,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             return _cmd_info(args)
         if args.command == "map":
             return _cmd_map(args)
-        if args.command == "download":
-            return _cmd_download(args)
+        if args.command == "urls":
+            return _cmd_urls(args)
     except (ValueError, KeyError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2

@@ -6,9 +6,8 @@ from pathlib import Path
 
 import pytest
 
-from icd10gm_crosswalk import BfArMDownloadError
-from icd10gm_crosswalk import cli as cli_mod
 from icd10gm_crosswalk.cli import main
+from icd10gm_crosswalk.sources import TERMS_URL
 
 DATA = str(Path(__file__).parent / "data")
 
@@ -44,35 +43,16 @@ def test_map_unknown_year_errors(capsys: pytest.CaptureFixture[str]) -> None:
     assert "error:" in capsys.readouterr().err
 
 
-def test_download_without_accept_terms_refuses(
-    capsys: pytest.CaptureFixture[str],
-) -> None:
-    rc = main(["download", "2024"])
-    assert rc == 2
-    assert "--accept-terms" in capsys.readouterr().err
-
-
-def test_download_success(
-    capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
-    fake = tmp_path / "icd10gm2024syst-ueberl.zip"
-    monkeypatch.setattr(cli_mod, "download_year", lambda *a, **k: fake)
-    rc = main(["download", "2024", "--accept-terms", "--cache", str(tmp_path)])
+def test_urls_lists_download_links(capsys: pytest.CaptureFixture[str]) -> None:
+    rc = main(["urls", "--from", "2017", "--to", "2024"])
     assert rc == 0
-    assert f"2024: {fake}" in capsys.readouterr().out
+    out = capsys.readouterr().out
+    assert TERMS_URL in out
+    assert "2023→2024" in out
+    assert "version2024" in out
 
 
-def test_download_partial_failure_aggregates_exit_code(
-    capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
-    def _fake(year: int, **kwargs: object) -> Path:
-        if year == 2024:
-            raise BfArMDownloadError("blocked by portal")
-        return tmp_path / f"icd10gm{year}syst-ueberl.zip"
-
-    monkeypatch.setattr(cli_mod, "download_year", _fake)
-    rc = main(["download", "2023", "2024", "--accept-terms", "--cache", str(tmp_path)])
-    assert rc == 1  # any failure -> non-zero
-    captured = capsys.readouterr()
-    assert "2023:" in captured.out  # the success printed to stdout
-    assert "2024:" in captured.err  # the failure printed to stderr
+def test_urls_reversed_years_errors(capsys: pytest.CaptureFixture[str]) -> None:
+    rc = main(["urls", "--from", "2024", "--to", "2017"])
+    assert rc == 2
+    assert "error:" in capsys.readouterr().err

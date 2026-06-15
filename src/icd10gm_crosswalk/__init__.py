@@ -14,21 +14,21 @@ Quick start
 (<MappingKind.SPLIT: 'split'>, ('J45.00', 'J45.01', ...))
 
 The library never bundles or redistributes BfArM data; see
-:mod:`icd10gm_crosswalk.download` for the terms-gated download helper.
+:mod:`icd10gm_crosswalk.sources` for helpers that point you at the exact files to
+download yourself.
 """
 
 from __future__ import annotations
 
 from .crosswalk import Crosswalk
-from .download import BfArMDownloadError, download_year
 from .models import MappingKind, MapResult, StepResult, Transition
 from .parsing import find_umsteiger, parse_umsteiger_text
+from .sources import download_instructions, transition_zip_url, transition_zip_urls
 from .store import TransitionStore, YearStep
 
 __version__ = "0.1.0"
 
 __all__ = [
-    "BfArMDownloadError",
     "Crosswalk",
     "MapResult",
     "MappingKind",
@@ -37,7 +37,9 @@ __all__ = [
     "TransitionStore",
     "YearStep",
     "__version__",
-    "download_year",
+    "download_instructions",
     "find_umsteiger",
     "parse_umsteiger_text",
+    "transition_zip_url",
+    "transition_zip_urls",
 ]
