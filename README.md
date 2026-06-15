@@ -1,6 +1,7 @@
 # icd10gm-crosswalk
 
 [![CI](https://github.com/JohannKaspar/icd10gm-crosswalk/actions/workflows/ci.yml/badge.svg)](https://github.com/JohannKaspar/icd10gm-crosswalk/actions/workflows/ci.yml)
+[![PyPI](https://img.shields.io/pypi/v/icd10gm-crosswalk)](https://pypi.org/project/icd10gm-crosswalk/)
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
@@ -47,19 +48,16 @@ does the chaining.
 
 ## Installation
 
-This repo uses [uv](https://docs.astral.sh/uv/). Until it is published to PyPI,
-install from source:
+```bash
+pip install icd10gm-crosswalk        # or: uv add icd10gm-crosswalk
+```
+
+From source (this repo uses [uv](https://docs.astral.sh/uv/)):
 
 ```bash
 git clone https://github.com/JohannKaspar/icd10gm-crosswalk
 cd icd10gm-crosswalk
 uv sync
-```
-
-Once released, it will be installable directly:
-
-```bash
-pip install icd10gm-crosswalk        # or: uv add icd10gm-crosswalk  (after PyPI release)
 ```
 
 ## Quick start
