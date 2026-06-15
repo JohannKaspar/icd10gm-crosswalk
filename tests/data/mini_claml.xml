@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Hand-authored minimal ICD-10-GM-style ClaML for tests (not BfArM data). -->
+<ClaML version="2.0.0">
+  <Modifier code="MOD4">
+    <ModifierClass code=".0" modifier="MOD4">
+      <Rubric kind="preferred"><Label>Ohne Komplikationen</Label></Rubric>
+    </ModifierClass>
+    <ModifierClass code=".2" modifier="MOD4" usage="dagger">
+      <Rubric kind="preferred"><Label>Mit Nierenkomplikationen</Label></Rubric>
+    </ModifierClass>
+    <ModifierClass code=".3" modifier="MOD4" usage="dagger">
+      <Rubric kind="preferred"><Label>Mit Augenkomplikationen</Label></Rubric>
+    </ModifierClass>
+  </Modifier>
+
+  <Class code="A00.0" kind="category">
+    <Meta name="Para295" value="P" />
+    <Rubric kind="preferred"><Label>Cholera durch Vibrio cholerae</Label></Rubric>
+  </Class>
+
+  <Class code="A18.0" kind="category" usage="dagger">
+    <Meta name="Para295" value="P" />
+    <Rubric kind="preferred"><Label>Tuberkulose der Knochen und Gelenke</Label></Rubric>
+  </Class>
+
+  <Class code="H36.0" kind="category" usage="aster">
+    <Meta name="Para295" value="O" />
+    <Rubric kind="preferred"><Label>Retinopathia diabetica</Label></Rubric>
+  </Class>
+
+  <Class code="B95.6" kind="category">
+    <Meta name="Para295" value="Z" />
+    <Rubric kind="preferred"><Label>Staphylococcus aureus als Ursache</Label></Rubric>
+  </Class>
+
+  <Class code="J44" kind="category">
+    <Meta name="Para295" value="V" />
+    <Rubric kind="preferred"><Label>Sonstige chronische obstruktive Lungenkrankheit</Label></Rubric>
+  </Class>
+
+  <Class code="E10" kind="category">
+    <Meta name="Para295" value="V" />
+    <ModifiedBy code="MOD4" />
+    <Rubric kind="preferred"><Label>Diabetes mellitus, Typ 1</Label></Rubric>
+  </Class>
+</ClaML>

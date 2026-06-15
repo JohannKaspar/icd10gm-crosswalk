@@ -26,6 +26,7 @@ from .models import MappingKind, MapResult, StepResult, Transition
 from .parsing import find_umsteiger, parse_umsteiger_text
 from .sources import download_instructions, transition_zip_url, transition_zip_urls
 from .store import TransitionStore, YearStep
+from .systematik import MarkerValidationWarning, Role, Systematik
 
 __version__ = "0.1.0"
 
@@ -33,7 +34,10 @@ __all__ = [
     "Crosswalk",
     "MapResult",
     "MappingKind",
+    "MarkerValidationWarning",
+    "Role",
     "StepResult",
+    "Systematik",
     "Transition",
     "TransitionStore",
     "YearStep",

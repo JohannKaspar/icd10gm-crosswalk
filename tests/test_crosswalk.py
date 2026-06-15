@@ -7,6 +7,12 @@ import pytest
 from icd10gm_crosswalk import Crosswalk, MappingKind, TransitionStore, YearStep
 from icd10gm_crosswalk.models import Transition
 
+# This file exercises marker *preservation* without a systematik; the resulting
+# "unverified marker" notices are expected here and covered in test_systematik.py.
+pytestmark = pytest.mark.filterwarnings(
+    "ignore::icd10gm_crosswalk.systematik.MarkerValidationWarning"
+)
+
 
 # -- single step ----------------------------------------------------------- #
 def test_step_identity(crosswalk: Crosswalk) -> None:

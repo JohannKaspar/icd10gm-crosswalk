@@ -22,6 +22,11 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   Stern (`*`), or `!` marker for the lookup and re-applies it to the result;
   `map_components` maps each component of a compound diagnosis; `map` raises on a
   compound. Helpers `strip_markers` / `split_marker` / `split_components`.
+- Optional ClaML-backed marker validation: `Systematik.from_source` parses BfArM's
+  ClaML into exact dagger/Stern/`!` roles (incl. modifier-expanded blocks such as
+  diabetes); `Crosswalk(store, systematik=...)` then validates input markers and
+  emits a `MarkerValidationWarning` on a contradiction — or when no systematik is
+  loaded to check against. Stdlib XML parsing with an entity-declaration guard.
 - `TransitionStore` / `parse_umsteiger_text` / `find_umsteiger` — read transition
   tables from a loose `.txt`, a year ZIP, or a directory (incl. BfArM's nested-ZIP
   layout from the 2022 edition onward), with recursion-depth and member-size guards

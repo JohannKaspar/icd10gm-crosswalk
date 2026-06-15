@@ -28,26 +28,45 @@ crosswalks exactly.
 from __future__ import annotations
 
 import os
+import warnings
 from dataclasses import replace
 from pathlib import Path
 
 from .codes import COMPONENT_SEPARATOR, split_components, split_marker
 from .models import MappingKind, MapResult, StepResult
 from .store import TransitionStore, YearStep
+from .systematik import MarkerValidationWarning, Systematik, expected_role
 
 __all__ = ["Crosswalk"]
 
+_NO_SYSTEMATIK_MSG = (
+    "a Kreuz/Stern/'!' marker was detected but no systematik was loaded to validate "
+    "it; it is carried through unverified. Pass systematik= to enable validation."
+)
+
 
 class Crosswalk:
-    """Map ICD-10-GM codes forward across editions using a transition store."""
+    """Map ICD-10-GM codes forward across editions using a transition store.
 
-    def __init__(self, store: TransitionStore) -> None:
+    Pass an optional :class:`~icd10gm_crosswalk.systematik.Systematik` to validate
+    Kreuz/Stern/``!`` markers on the input against the code's actual role; without
+    one, a marked input still maps fine but emits a
+    :class:`~icd10gm_crosswalk.systematik.MarkerValidationWarning` that it could not
+    be checked. Load the systematik for the edition your input codes are in.
+    """
+
+    def __init__(
+        self, store: TransitionStore, systematik: Systematik | None = None
+    ) -> None:
         self.store = store
+        self.systematik = systematik
 
     @classmethod
-    def from_source(cls, source: str | Path) -> Crosswalk:
+    def from_source(
+        cls, source: str | Path, systematik: Systematik | None = None
+    ) -> Crosswalk:
         """Convenience constructor: build the store from ``source`` and wrap it."""
-        return cls(TransitionStore.from_source(source))
+        return cls(TransitionStore.from_source(source), systematik)
 
     # -- single step ------------------------------------------------------- #
     def map_step(self, code: str, from_year: int) -> StepResult:
@@ -134,6 +153,8 @@ class Crosswalk:
                 "use map_components() instead of map()."
             )
         bare, marker = split_marker(stripped)
+        if marker:
+            self._validate_marker(bare, marker)
         result = self._map_bare(bare, from_year, to_year)
         if not marker:
             return result
@@ -142,6 +163,23 @@ class Crosswalk:
             code=bare + marker,
             targets=tuple(target + marker for target in result.targets),
         )
+
+    def _validate_marker(self, bare: str, marker: str) -> None:
+        """Warn if a marker can't be validated, or contradicts the systematik."""
+        if self.systematik is None:
+            warnings.warn(_NO_SYSTEMATIK_MSG, MarkerValidationWarning, stacklevel=3)
+            return
+        expected = expected_role(marker)
+        if expected is None:
+            return
+        role = self.systematik.role(bare)
+        if role is not None and role != expected:
+            warnings.warn(
+                f"{bare!r} is marked {marker!r} ({expected.value}) but the "
+                f"systematik lists it as {role.value}.",
+                MarkerValidationWarning,
+                stacklevel=3,
+            )
 
     def map_components(
         self, text: str, from_year: int, to_year: int, sep: str = COMPONENT_SEPARATOR

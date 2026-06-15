@@ -42,7 +42,7 @@ does the chaining.
   including the nested-ZIP packaging used since the 2022 edition.
 - **Combined codes & Kreuz-Stern notation** — maps the components of a compound
   diagnosis and carries the Kreuz (`†`/`+`), Stern (`*`), and `!` role markers
-  through the mapping.
+  through the mapping, optionally validating them against the ClaML systematik.
 - **Zero runtime dependencies**, fully typed (`py.typed`), tested, with a CLI.
 
 ## Installation
@@ -117,10 +117,34 @@ for r in cw.map_components("A41.9,R65.1!", 2017, 2024):
 cw.map("A41.9,R65.1!", 2017, 2024)           # ValueError: use map_components()
 ```
 
-The marker is re-applied *syntactically* (it preserves the source annotation's
-role); it is not re-validated against the target edition's systematik, which the
-library doesn't read. Helpers `strip_markers`, `split_marker`, and
-`split_components` are exported if you need them directly.
+Helpers `strip_markers`, `split_marker`, and `split_components` are exported if you
+need them directly.
+
+#### Validating markers against the systematik (optional)
+
+By default the marker is re-applied *syntactically* — it preserves the source
+annotation's role but isn't checked. Pass a `Systematik` (parsed from BfArM's
+ClaML) and the crosswalk will verify each marker against the code's real role,
+warning on a contradiction (and warning that it *can't* verify when no systematik
+is loaded):
+
+```python
+from icd10gm_crosswalk import Crosswalk, Systematik
+
+syst = Systematik.from_source("~/icd10gm2024syst-claml.zip")   # one ClaML file
+cw = Crosswalk.from_source("~/icd10gm-zips", systematik=syst)
+
+cw.map("H36.0*", 2017, 2024)   # fine — H36.0 really is a Stern code
+cw.map("A09.9+", 2017, 2024)   # MarkerValidationWarning: A09.9 is not a dagger code
+cw.map("H36.0+", 2017, 2024)   # MarkerValidationWarning: H36.0 is star, not dagger
+```
+
+ClaML is the single source of truth here: it carries the exact `dagger`/`aster`
+designation (the flat metadata lumps dagger in with ordinary primary codes — of
+~13k primary codes only ~131 are truly dagger), and the modifier-expanded blocks
+(diabetes `E10–E14`, etc.) are resolved too, so `E10.30†` validates correctly.
+Filter the notices with Python's `warnings` module (category
+`MarkerValidationWarning`) if you don't want them.
 
 ## Command line
 
